@@ -387,7 +387,7 @@ exitAdminBtn.addEventListener('click', () => {
   adminBanner.classList.remove('active');
 });
 
-waBtn.addEventListener('click', async () => {
+waBtn.addEventListener('click', () => {
   const nums = Array.from(selectedNumbers).sort((a,b)=>a-b);
   if(nums.length === 0) return;
   const total = nums.length * PRICE;
@@ -395,18 +395,21 @@ waBtn.addEventListener('click', async () => {
   const msg = `Hola, quiero apartar el/los número(s) ${numsText} de la Rifa Solidaria (paquete de spa + $2,000) para apoyar a Jesús Armando. Total: $${total} pesos.`;
   const url = `https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`;
 
+  // Abrir WhatsApp de inmediato (debe pasar en el mismo instante del toque,
+  // o varios navegadores de celular lo bloquean como si fuera un pop-up).
+  window.open(url, '_blank');
+
   waBtn.disabled = true;
   waBtn.textContent = 'Apartando...';
-  try{
-    await setDoc(docRef, { numeros: arrayUnion(...nums) }, { merge: true });
-  }catch(e){
-    console.error('Error guardando selección:', e);
-  }
-  selectedNumbers.clear();
-  renderGrid();
-  updateFooter();
-  waBtn.textContent = '📲 Apartar por WhatsApp';
-  window.open(url, '_blank');
+  setDoc(docRef, { numeros: arrayUnion(...nums) }, { merge: true })
+    .catch(e => console.error('Error guardando selección:', e))
+    .finally(() => {
+      selectedNumbers.clear();
+      renderGrid();
+      updateFooter();
+      waBtn.disabled = false;
+      waBtn.textContent = '📲 Apartar por WhatsApp';
+    });
 });
 
 clearBtn.addEventListener('click', clearSelection);
