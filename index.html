@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rifa Solidaria — Jesús Armando Hernández Félix</title>
+<style>
+  :root{
+    --teal-dark:#1F4B47;
+    --teal:#2E7D74;
+    --teal-soft:#DCEAE7;
+    --gold:#C9A24B;
+    --cream:#FBF6EC;
+    --dark:#22322F;
+    --gray:#5A6A66;
+    --line:#E4D9BE;
+    --taken:#D8D2C2;
+    --taken-text:#9A9184;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Trebuchet MS', 'Segoe UI', sans-serif;
+    background:var(--cream);
+    color:var(--dark);
+  }
+  header{
+    background:var(--teal-dark);
+    padding:28px 20px 22px;
+    text-align:center;
+    border-bottom:5px solid var(--gold);
+  }
+  header h1{ margin:0 0 6px; color:#fff; font-size:28px; letter-spacing:1px; }
+  header .sub{ color:var(--gold); font-weight:bold; font-size:15px; margin-bottom:6px; }
+  header .cause{ color:#fff; font-size:13px; opacity:0.9; }
+  header .beneficiary{ color:#fff; font-weight:bold; font-size:14px; margin-top:2px; }
+
+  .price-banner{
+    max-width:420px; margin:-14px auto 0; background:var(--gold); color:var(--teal-dark);
+    text-align:center; padding:12px 20px; border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.12); font-weight:bold;
+  }
+  .price-banner .big{font-size:18px;}
+  .price-banner .small{font-size:11.5px; font-weight:normal; opacity:0.85;}
+
+  .prizes{ max-width:640px; margin:22px auto 0; background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 20px; }
+  .prizes h2{ text-align:center; color:var(--teal-dark); font-size:15px; margin:0 0 4px; letter-spacing:0.5px; }
+  .prizes .spa-note{ text-align:center; font-size:11.5px; color:var(--gray); font-style:italic; margin-bottom:10px; }
+  .prizes ul{ list-style:none; padding:0; margin:0; display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; }
+  .prizes li{ font-size:12.5px; color:var(--dark); padding-left:14px; position:relative; }
+  .prizes li::before{ content:""; position:absolute; left:0; top:5px; width:6px; height:6px; border-radius:50%; background:var(--gold); }
+  .prizes li b{display:block; font-size:12.5px;}
+
+  .legend{ max-width:640px; margin:16px auto 0; display:flex; justify-content:center; gap:20px; font-size:12px; color:var(--gray); }
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block;}
+  .dot.avail{background:#fff; border:1.5px solid var(--teal);}
+  .dot.sel{background:var(--teal); border:1.5px solid var(--teal);}
+  .dot.taken{background:var(--taken); border:1.5px solid var(--taken);}
+
+  .conn-status{
+    max-width:640px; margin:10px auto 0; text-align:center; font-size:11px; color:var(--gray);
+  }
+  .conn-status.ok::before{ content:"●"; color:#2E7D74; margin-right:5px; }
+  .conn-status.error::before{ content:"●"; color:#b23b3b; margin-right:5px; }
+  .conn-status.loading::before{ content:"●"; color:#C9A24B; margin-right:5px; }
+
+  .sold-counter{
+    max-width:640px; margin:10px auto 0; text-align:center;
+  }
+  .sold-counter .bar-bg{
+    background:#fff; border:1px solid var(--line); border-radius:20px; height:22px;
+    overflow:hidden; position:relative;
+  }
+  .sold-counter .bar-fill{
+    background:var(--teal); height:100%; width:0%; transition:width 0.4s ease; border-radius:20px 0 0 20px;
+  }
+  .sold-counter .bar-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:bold; color:var(--teal-dark);
+  }
+
+  .grid-wrap{ max-width:640px; margin:10px auto 100px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; }
+  #grid{ display:grid; grid-template-columns:repeat(10, 1fr); gap:6px; }
+  .num{
+    aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold;
+    border-radius:6px; border:1.5px solid var(--teal); background:#fff; color:var(--teal-dark);
+    cursor:pointer; user-select:none; transition:transform 0.08s ease;
+  }
+  .num:active{transform:scale(0.92);}
+  .num.selected{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .num.taken{ background:var(--taken); color:var(--taken-text); border-color:var(--taken); cursor:not-allowed; }
+
+  .contact-box{ max-width:640px; margin:0 auto 100px; background:var(--teal-soft); border-radius:12px; padding:16px 20px; font-size:12.5px; color:var(--dark); }
+  .contact-box h3{ margin:0 0 8px; color:var(--teal-dark); font-size:14px; text-align:center; }
+  .contact-box .row{margin-bottom:5px;}
+  .contact-box b{color:var(--teal-dark);}
+
+  footer.bar{
+    position:fixed; bottom:0; left:0; right:0; background:var(--teal-dark); color:#fff; padding:12px 16px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; box-shadow:0 -4px 10px rgba(0,0,0,0.15);
+  }
+  footer.bar .info{font-size:12.5px; line-height:1.4;}
+  footer.bar button{
+    background:#25D366; color:#fff; border:none; padding:11px 16px; border-radius:8px; font-weight:bold;
+    font-size:12.5px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;
+  }
+  footer.bar button:disabled{ background:#8fa6a0; cursor:not-allowed; }
+  footer.bar button.clear{ background:transparent; border:1px solid rgba(255,255,255,0.4); color:#fff; padding:11px 12px; }
+
+  .admin-link{ text-align:center; margin-top:14px; }
+  .admin-link button{
+    font-size:11.5px; color:var(--gray); text-decoration:underline; cursor:pointer; background:none; border:none;
+    padding:12px 20px; touch-action:manipulation; -webkit-tap-highlight-color: rgba(46,125,116,0.25);
+  }
+  .admin-banner{
+    max-width:640px; margin:10px auto 0; background:#fff3cd; border:1px solid #e6c667; color:#5c4a12;
+    font-size:12px; text-align:center; padding:8px 14px; border-radius:8px; display:none;
+  }
+  .admin-banner.active{display:block;}
+  .admin-banner button{
+    margin-left:8px; background:var(--teal-dark); color:#fff; border:none; padding:4px 10px;
+    border-radius:6px; font-size:11px; cursor:pointer;
+  }
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(34,50,47,0.55); z-index:999;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-box{ background:#fff; border-radius:14px; padding:22px 20px; max-width:320px; width:100%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.25); }
+  .modal-box h4{ margin:0 0 10px; color:var(--teal-dark); font-size:15px; }
+  .modal-box p{ margin:0 0 14px; font-size:13px; color:var(--dark); line-height:1.4; }
+  .modal-box input{
+    width:100%; padding:10px; font-size:16px; text-align:center; letter-spacing:3px;
+    border:1.5px solid var(--line); border-radius:8px; margin-bottom:10px; box-sizing:border-box;
+  }
+  .modal-actions{ display:flex; gap:8px; }
+  .modal-actions button{ flex:1; padding:10px; border-radius:8px; border:none; font-weight:bold; font-size:13px; cursor:pointer; }
+  .modal-actions .btn-cancel{ background:var(--cream); color:var(--dark); border:1px solid var(--line); }
+  .modal-actions .btn-confirm{ background:var(--teal); color:#fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RIFA SOLIDARIA</h1>
+  <div class="sub">Paquete de Spa + $2,000 en Efectivo</div>
+  <div class="cause">Apoyo para viáticos y gastos oncológicos</div>
+  <div class="beneficiary">Jesús Armando Hernández Félix</div>
+</header>
+
+<div class="price-banner">
+  <div class="big">$100 pesos el número</div>
+  <div class="small">400 números disponibles — toca los números para elegir los tuyos</div>
+</div>
+
+<div class="prizes">
+  <h2>¿QUÉ TE PUEDES GANAR?</h2>
+  <div class="spa-note">Paquete de spa válido en RQ Spa y Rox Spa</div>
+  <ul>
+    <li><b>Hydrafacial</b>Hidratación facial profunda</li>
+    <li><b>Hollywood Peel</b>Peeling rejuvenecedor</li>
+    <li><b>Masaje relajante</b>Sesión completa</li>
+    <li><b>$2,000 en efectivo</b>Premio directo</li>
+  </ul>
+</div>
+
+<div class="legend">
+  <span><span class="dot avail"></span>Disponible</span>
+  <span><span class="dot sel"></span>Tu selección</span>
+  <span><span class="dot taken"></span>Apartado / vendido</span>
+</div>
+<div class="sold-counter">
+  <div class="bar-bg">
+    <div class="bar-fill" id="soldBarFill"></div>
+    <div class="bar-label" id="soldLabel">0 de 400 números vendidos</div>
+  </div>
+</div>
+<div class="conn-status loading" id="connStatus">Conectando...</div>
+
+<div class="grid-wrap"><div id="grid"></div></div>
+
+<div class="admin-banner" id="adminBanner">
+  Modo administrador activado — toca cualquier número para <b>liberarlo</b> o <b>marcarlo como apartado</b> manualmente.
+  <button id="exitAdminBtn">Salir</button>
+</div>
+<div class="admin-link"><button id="adminToggle" type="button">¿Eres Jesús? Administrar números</button></div>
+
+<div class="contact-box">
+  <h3>Contacto y formas de pago</h3>
+  <div class="row"><b>Contacto / apartar números:</b> 961 304 1427</div>
+  <div class="row"><b>CLABE BBVA:</b> 012 045 01522113465 4</div>
+  <div class="row"><b>CLABE Mercado Pago:</b> 722969010186627981</div>
+  <div class="row"><b>Tarjeta BBVA (depósito en OXXO):</b> 4152 3144 6841 3730</div>
+  <div class="row" style="margin-top:8px; font-style:italic; color:var(--gray);">
+    Al elegir tus números y enviar el mensaje por WhatsApp, tus números quedarán marcados como "apartados" al instante para todos. Envía tu comprobante de pago para confirmarlos.
+  </div>
+</div>
+
+<footer class="bar">
+  <div class="info"><span id="selCount">0</span> número(s) seleccionado(s)<br>Total: $<span id="selTotal">0</span></div>
+  <div style="display:flex; gap:8px;">
+    <button class="clear" id="clearBtn">Limpiar</button>
+    <button id="waBtn" disabled>📲 Apartar por WhatsApp</button>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h4 id="modalTitle">Título</h4>
+    <p id="modalText"></p>
+    <input type="password" inputmode="numeric" id="modalInput" style="display:none;" placeholder="PIN">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">Cancelar</button>
+      <button class="btn-confirm" id="modalConfirm">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('error', function(e){
+  var el = document.getElementById('connStatus');
+  if(el){ el.textContent = 'Error cargando la página: ' + (e.message || 'desconocido'); el.className='conn-status error'; }
+});
+window.addEventListener('unhandledrejection', function(e){
+  var el = document.getElementById('connStatus');
+  var msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+  if(el){ el.textContent = 'Error: ' + msg; el.className='conn-status error'; }
+});
+setTimeout(function(){
+  var grid = document.getElementById('grid');
+  var el = document.getElementById('connStatus');
+  if(grid && grid.children.length === 0 && el && el.textContent.trim() === 'Conectando...'){
+    el.textContent = 'La página no terminó de cargar (posible bloqueo de red o script). Intenta de nuevo o revisa tu conexión.';
+    el.className = 'conn-status error';
+  }
+}, 6000);
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc, onSnapshot, arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC5LwPVjmWunqzRLKQMozo7FgQzTWeeOJ8",
+  authDomain: "rifa-gastos-oncologicos-jesus.firebaseapp.com",
+  projectId: "rifa-gastos-oncologicos-jesus",
+  storageBucket: "rifa-gastos-oncologicos-jesus.firebasestorage.app",
+  messagingSenderId: "705033672961",
+  appId: "1:705033672961:web:0cafae975e396f32e9a300"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const docRef = doc(db, "rifa", "numeros");
+
+const TOTAL_NUMBERS = 400;
+const PRICE = 100;
+const PHONE = "529613041427";
+const ADMIN_PIN = "9613";
+
+let takenNumbers = new Set();
+let selectedNumbers = new Set();
+let adminMode = false;
+
+const grid = document.getElementById('grid');
+const connStatus = document.getElementById('connStatus');
+const soldBarFill = document.getElementById('soldBarFill');
+const soldLabel = document.getElementById('soldLabel');
+const selCount = document.getElementById('selCount');
+const selTotal = document.getElementById('selTotal');
+const waBtn = document.getElementById('waBtn');
+const clearBtn = document.getElementById('clearBtn');
+const adminToggle = document.getElementById('adminToggle');
+const adminBanner = document.getElementById('adminBanner');
+const exitAdminBtn = document.getElementById('exitAdminBtn');
+
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const modalText = document.getElementById('modalText');
+const modalInput = document.getElementById('modalInput');
+const modalCancel = document.getElementById('modalCancel');
+const modalConfirm = document.getElementById('modalConfirm');
+
+function closeModal(){
+  modalOverlay.classList.remove('active');
+  modalInput.style.display = 'none';
+  modalInput.value = '';
+}
+function askPin(title, text){
+  return new Promise((resolve) => {
+    modalTitle.textContent = title;
+    modalText.textContent = text;
+    modalInput.style.display = 'block';
+    modalInput.value = '';
+    modalOverlay.classList.add('active');
+    setTimeout(() => modalInput.focus(), 100);
+    const onConfirm = () => { const v = modalInput.value; cleanup(); resolve(v); };
+    const onCancel = () => { cleanup(); resolve(null); };
+    function cleanup(){
+      closeModal();
+      modalConfirm.removeEventListener('click', onConfirm);
+      modalCancel.removeEventListener('click', onCancel);
+    }
+    modalConfirm.addEventListener('click', onConfirm);
+    modalCancel.addEventListener('click', onCancel);
+  });
+}
+function askConfirm(title, text){
+  return new Promise((resolve) => {
+    modalTitle.textContent = title;
+    modalText.textContent = text;
+    modalInput.style.display = 'none';
+    modalOverlay.classList.add('active');
+    const onConfirm = () => { cleanup(); resolve(true); };
+    const onCancel = () => { cleanup(); resolve(false); };
+    function cleanup(){
+      closeModal();
+      modalConfirm.removeEventListener('click', onConfirm);
+      modalCancel.removeEventListener('click', onCancel);
+    }
+    modalConfirm.addEventListener('click', onConfirm);
+    modalCancel.addEventListener('click', onCancel);
+  });
+}
+function showMessage(title, text){
+  modalTitle.textContent = title;
+  modalText.textContent = text;
+  modalInput.style.display = 'none';
+  modalOverlay.classList.add('active');
+  const onConfirm = () => { closeModal(); modalConfirm.removeEventListener('click', onConfirm); };
+  modalConfirm.addEventListener('click', onConfirm);
+}
+
+function buildGrid(){
+  grid.innerHTML = '';
+  for(let i=1; i<=TOTAL_NUMBERS; i++){
+    const div = document.createElement('div');
+    div.className = 'num';
+    div.textContent = String(i).padStart(3,'0');
+    div.addEventListener('click', () => handleNumberClick(i));
+    grid.appendChild(div);
+  }
+}
+function handleNumberClick(num){
+  if(adminMode){ toggleTakenAdmin(num); } else { toggleNumber(num); }
+}
+function renderGrid(){
+  const cells = grid.children;
+  for(let i=0; i<cells.length; i++){
+    const num = i+1;
+    const cell = cells[i];
+    cell.classList.remove('taken','selected');
+    if(takenNumbers.has(num)){ cell.classList.add('taken'); }
+    else if(selectedNumbers.has(num)){ cell.classList.add('selected'); }
+  }
+}
+function toggleNumber(num){
+  if(takenNumbers.has(num)) return;
+  if(selectedNumbers.has(num)){ selectedNumbers.delete(num); } else { selectedNumbers.add(num); }
+  renderGrid();
+  updateFooter();
+}
+function updateFooter(){
+  const count = selectedNumbers.size;
+  selCount.textContent = count;
+  selTotal.textContent = count * PRICE;
+  waBtn.disabled = count === 0;
+}
+function clearSelection(){
+  selectedNumbers.clear();
+  renderGrid();
+  updateFooter();
+}
+
+async function toggleTakenAdmin(num){
+  const label = String(num).padStart(3,'0');
+  try{
+    if(takenNumbers.has(num)){
+      const ok = await askConfirm('Liberar número', `¿Liberar el número ${label}? Volverá a estar disponible para todos.`);
+      if(!ok) return;
+      await setDoc(docRef, { numeros: arrayRemove(num) }, { merge: true });
+    } else {
+      const ok = await askConfirm('Marcar como apartado', `¿Marcar el número ${label} como apartado/vendido?`);
+      if(!ok) return;
+      await setDoc(docRef, { numeros: arrayUnion(num) }, { merge: true });
+    }
+  }catch(e){
+    console.error('Error admin:', e);
+    showMessage('Error', 'No se pudo guardar el cambio: ' + (e && e.message ? e.message : 'error'));
+  }
+}
+
+adminToggle.addEventListener('click', async () => {
+  const pin = await askPin('Modo administrador', 'Ingresa el PIN para administrar los números:');
+  if(pin === null) return;
+  if(pin.trim() === ADMIN_PIN){
+    adminMode = true;
+    adminBanner.classList.add('active');
+    clearSelection();
+  } else {
+    showMessage('PIN incorrecto', 'El PIN que ingresaste no es correcto.');
+  }
+});
+exitAdminBtn.addEventListener('click', () => {
+  adminMode = false;
+  adminBanner.classList.remove('active');
+});
+
+waBtn.addEventListener('click', () => {
+  const nums = Array.from(selectedNumbers).sort((a,b)=>a-b);
+  if(nums.length === 0) return;
+  const total = nums.length * PRICE;
+  const numsText = nums.map(n => String(n).padStart(3,'0')).join(', ');
+  const msg = `Hola, quiero apartar el/los número(s) ${numsText} de la Rifa Solidaria (paquete de spa + $2,000) para apoyar a Jesús Armando. Total: $${total} pesos.`;
+  const url = `https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`;
+
+  // Abrir WhatsApp de inmediato (debe pasar en el mismo instante del toque,
+  // o varios navegadores de celular lo bloquean como si fuera un pop-up).
+  window.open(url, '_blank');
+
+  waBtn.disabled = true;
+  waBtn.textContent = 'Apartando...';
+  setDoc(docRef, { numeros: arrayUnion(...nums) }, { merge: true })
+    .catch(e => console.error('Error guardando selección:', e))
+    .finally(() => {
+      selectedNumbers.clear();
+      renderGrid();
+      updateFooter();
+      waBtn.disabled = false;
+      waBtn.textContent = '📲 Apartar por WhatsApp';
+    });
+});
+
+clearBtn.addEventListener('click', clearSelection);
+
+buildGrid();
+
+// Escucha en tiempo real: todos los que tengan la página abierta ven
+// los cambios al instante, sin necesidad de refrescar.
+onSnapshot(docRef,
+  (snap) => {
+    const data = snap.data();
+    takenNumbers = new Set((data && data.numeros) ? data.numeros : []);
+    renderGrid();
+    const soldCount = takenNumbers.size;
+    soldBarFill.style.width = (soldCount / TOTAL_NUMBERS * 100) + '%';
+    soldLabel.textContent = `${soldCount} de ${TOTAL_NUMBERS} números vendidos`;
+    connStatus.textContent = 'Conectado — disponibilidad en tiempo real';
+    connStatus.className = 'conn-status ok';
+  },
+  (err) => {
+    console.error('Error de conexión Firestore:', err);
+    connStatus.textContent = 'Error de conexión: ' + err.message;
+    connStatus.className = 'conn-status error';
+  }
+);
+</script>
+
+</body>
+</html>
